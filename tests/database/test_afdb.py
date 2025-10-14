@@ -68,3 +68,32 @@ def test_fetch_invalid(monkeypatch, format, invalid_id, bypass_metadata):
         )
     with pytest.raises((RequestError, ValueError)):
         afdb.fetch(invalid_id, format)
+
+
+@pytest.mark.parametrize(
+    "entry_id,expected_uniprot_id",
+    [
+        # Plain UniProt IDs
+        ("P12345", "P12345"),
+        ("A0A024R7R1", "A0A024R7R1"),
+        # AF- prefix with hyphen separator
+        ("AF-P12345-F1", "P12345"),
+        ("AF-P12345F1", "P12345"),
+        ("AF-A0A024R7R1-F1", "A0A024R7R1"),
+        ("AF-A0A024R7R1F1", "A0A024R7R1"),
+        # AF_ prefix with underscore separator
+        ("AF_P12345_F1", "P12345"),
+        ("AF_P12345F1", "P12345"),
+        ("AF_AFA0A024R7R1F1", "A0A024R7R1"),
+        ("AF_A0A024R7R1_F1", "A0A024R7R1"),
+    ],
+)
+def test_extract_id(entry_id, expected_uniprot_id):
+    """
+    Test that the _extract_id function correctly handles various ID formats,
+    including both hyphen and underscore separators.
+    """
+    import biotite.database.afdb.download as module
+
+    uniprot_id = module._extract_id(entry_id)
+    assert uniprot_id == expected_uniprot_id
